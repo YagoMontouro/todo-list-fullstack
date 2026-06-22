@@ -28,9 +28,9 @@ def cadastrar_usuario():
     try:
         cursor.execute("INSERT INTO usuarios (email, senha) VALUES (%s, %s)", (email, senha))
         conexao.commit()
-        return jsonify({"mensagem": "Usuário criado com sucesso!"}), 201
+        return jsonify({"mensagem": "Usuario criado com sucesso!"}), 201
     except mysql.connector.Error as err:
-        return jsonify({"erro": "Este email já está cadastrado"}), 400
+        return jsonify({"erro": "Este email ja esta cadastrado"}), 400
     finally:
         cursor.close()
         conexao.close()
@@ -59,57 +59,14 @@ def login_usuario():
 def listar_tarefas(usuario_id):
     conexao = conectar_banco()
     cursor = conexao.cursor(dictionary=True)
+    
     cursor.execute("SELECT * FROM tarefas WHERE usuario_id = %s", (usuario_id,))
     tarefas = cursor.fetchall()
-    cursor.close()
-    conexao.close()
-    return jsonify(tarefas)
-
-@app.route('/tarefas', methods=['POST'])
-def adicionar_tarefa():
-    dados = request.get_json()
-    titulo = dados.get('titulo')
-    descricao = dados.get('descricao')
-    usuario_id = dados.get('usuario_id') 
-    
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    cursor.execute("INSERT INTO tarefas (usuario_id, titulo, descricao) VALUES (%s, %s, %s)", (usuario_id, titulo, descricao))
-    conexao.commit()
-    nova_id = cursor.lastrowid
-    cursor.close()
-    conexao.close()
-    return jsonify({"id": nova_id, "usuario_id": usuario_id, "titulo": titulo, "descricao": descricao}), 201
-
-# ROTA 4: Atualizar uma tarefa no banco (UPDATE)
-@app.route('/tarefas/<int:tarefa_id>', methods=['PUT'])
-def atualizar_tarefa(tarefa_id):
-    dados = request.get_json()
-    titulo = dados.get('titulo')
-    descricao = dados.get('descricao')
-    
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
-    
-    comando = "UPDATE tarefas SET titulo = %s, descricao = %s WHERE id = %s"
-    cursor.execute(comando, (titulo, descricao, tarefa_id))
-    conexao.commit()
     
     cursor.close()
     conexao.close()
-    return jsonify({"id": tarefa_id, "titulo": titulo, "descricao": descricao}), 200
-
-@app.route('/tarefas/<int:tarefa_id>', methods=['DELETE'])
-def deletar_tarefa(tarefa_id):
-    conexao = conectar_banco()
-    cursor = conexao.cursor()
     
-    cursor.execute("DELETE FROM tarefas WHERE id = %s", (tarefa_id,))
-    conexao.commit()
-    
-    cursor.close()
-    conexao.close()
-    return jsonify({"mensagem": "Tarefa excluída com sucesso!"}), 200
+    return jsonify(tarefas), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
