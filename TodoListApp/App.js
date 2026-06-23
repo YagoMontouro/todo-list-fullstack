@@ -10,15 +10,15 @@ import {
   Alert 
 } from 'react-native';
 
-// Atualizado com o IP correto do seu computador na rede local
-const API_URL = 'http://192.168.3.156:5000'; 
+// CONFIGURAÇÃO DE IP: Altere para 'http://10.0.2.2:5000' se usar o emulador Android Studio
+const API_URL = 'http://10.0.2.2:5000'; 
 
 export default function App() {
-  // Estados de Controle de Tela e Usuario
+  // Estados de Controle de Tela e Usuário
   const [usuarioLogado, setUsuarioLogado] = useState(null); // Guarda { id, email }
-  const [isCadastro, setIsCadastro] = useState(false); // Alterna entre tela de Login e Cadastro
+  const [isCadastro, setIsCadastro] = useState(false); // Alterna entre Login e Cadastro
 
-  // Estados dos Inputs de Autenticacao
+  // Estados dos Inputs de Autenticação
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
@@ -29,7 +29,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
 
-  // Carrega as tarefas sempre que o usuario logar com sucesso
+  // Carrega as tarefas sempre que o usuário logar com sucesso
   useEffect(() => {
     if (usuarioLogado) {
       carregarTarefas();
@@ -37,7 +37,7 @@ export default function App() {
   }, [usuarioLogado]);
 
   // ==========================================
-  // METODOS DE AUTENTICACAO (LOGIN / CADASTRO)
+  // MÉTODOS DE AUTENTICAÇÃO (LOGIN / CADASTRO)
   // ==========================================
   const handleAutenticacao = async () => {
     if (!email.trim() || !senha.trim()) {
@@ -64,10 +64,10 @@ export default function App() {
         }
         setSenha('');
       } else {
-        Alert.alert("Erro", dados.erro || "Ocorreu um erro na autenticacao.");
+        Alert.alert("Erro", dados.erro || "Ocorreu um erro na autenticação.");
       }
     } catch (error) {
-      Alert.alert("Erro de Conexao", "Não foi possível alcancar o servidor Flask.");
+      Alert.alert("Erro de Conexão", "Não foi possível alcançar o servidor Flask.");
     }
   };
 
@@ -79,10 +79,10 @@ export default function App() {
   };
 
   // ==========================================
-  // METODOS DO CRUD DE TAREFAS
+  // MÉTODOS DO CRUD DE TAREFAS
   // ==========================================
   
-  // 1. READ
+  // 1. READ (Buscar tarefas)
   const carregarTarefas = async () => {
     setLoading(true);
     try {
@@ -90,13 +90,13 @@ export default function App() {
       const dados = await response.json();
       setTarefas(dados);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao carregar tarefas:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. CREATE
+  // 2. CREATE (Adicionar tarefa)
   const adicionarTarefa = async () => {
     if (!titulo.trim()) return Alert.alert("Aviso", "A tarefa precisa de um título!");
 
@@ -126,7 +126,7 @@ export default function App() {
     setDescricao(tarefa.descricao || '');
   };
 
-  // 3. UPDATE
+  // 3. UPDATE (Salvar edição)
   const salvarEdicao = async () => {
     if (!titulo.trim()) return Alert.alert("Aviso", "O título não pode ser vazio!");
 
@@ -146,7 +146,7 @@ export default function App() {
     }
   };
 
-  // 4. DELETE
+  // 4. DELETE (Apagar tarefa)
   const deletarTarefa = async (id) => {
     try {
       const response = await fetch(`${API_URL}/tarefas/${id}`, {
@@ -168,14 +168,14 @@ export default function App() {
   };
 
   // ==========================================
-  // RENDERIZACAO DE TELAS
+  // RENDERIZAÇÃO DE TELAS
   // ==========================================
 
-  // TELA A: Autenticacao (Se o usuario NAO estiver logado)
+  // TELA A: Autenticação (Deslogado)
   if (!usuarioLogado) {
     return (
       <View style={styles.containerAuth}>
-        <Text style={styles.authTitle}>{isCadastro ? "Criar Conta" : "Autenticacao"}</Text>
+        <Text style={styles.authTitle}>{isCadastro ? "Criar Conta" : "Autenticação"}</Text>
         
         <TextInput 
           style={styles.input} 
@@ -199,18 +199,18 @@ export default function App() {
 
         <TouchableOpacity onPress={() => { setIsCadastro(!isCadastro); setSenha(''); }}>
           <Text style={styles.switchText}>
-            {isCadastro ? "Ja possui uma conta? Acesse o Login" : "Nao possui uma conta? Cadastre-se"}
+            {isCadastro ? "Já possui uma conta? Acesse o Login" : "Não possui uma conta? Cadastre-se"}
           </Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // TELA B: Painel de Tarefas (Se o usuario ESTIVER logado)
+  // TELA B: Painel de Tarefas (Logado)
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Usuario: {usuarioLogado.email}</Text>
+        <Text style={styles.welcomeText}>Usuário: {usuarioLogado.email}</Text>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutBtnText}>Sair</Text>
         </TouchableOpacity>
@@ -218,7 +218,7 @@ export default function App() {
 
       <Text style={styles.title}>Lista de Tarefas</Text>
 
-      {/* Formulario de Cadastro/Edicao de Tarefa */}
+      {/* Formulário de Cadastro/Edição */}
       <View style={styles.form}>
         <TextInput 
           style={styles.input}
@@ -249,7 +249,7 @@ export default function App() {
         </View>
       </View>
 
-      {/* Lista de Tarefas vinculadas ao usuario_id */}
+      {/* Lista de Tarefas */}
       {loading ? (
         <ActivityIndicator size="large" color="#007bff" />
       ) : (
@@ -281,13 +281,10 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  // Estilos da Autenticacao
   containerAuth: { flex: 1, backgroundColor: '#f5f5f5', justifyContent: 'center', padding: 30 },
   authTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 30, textAlign: 'center', color: '#333' },
   authButton: { backgroundColor: '#007bff', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   switchText: { textAlign: 'center', color: '#007bff', marginTop: 25, fontSize: 15 },
-  
-  // Estilos Gerais do Painel de Tarefas
   container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 50, paddingHorizontal: 20 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   welcomeText: { fontSize: 14, color: '#666', fontWeight: '500' },

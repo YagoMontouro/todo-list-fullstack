@@ -3,13 +3,12 @@ from flask_cors import CORS
 import mysql.connector
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(app) 
 def conectar_banco():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="@Yago0921", 
+        password="@Mello2026", 
         database="projeto_todolist"
     )
 
@@ -28,9 +27,9 @@ def cadastrar_usuario():
     try:
         cursor.execute("INSERT INTO usuarios (email, senha) VALUES (%s, %s)", (email, senha))
         conexao.commit()
-        return jsonify({"mensagem": "Usuario criado com sucesso!"}), 201
+        return jsonify({"mensagem": "Usuário criado com sucesso!"}), 201
     except mysql.connector.Error as err:
-        return jsonify({"erro": "Este email ja esta cadastrado"}), 400
+        return jsonify({"erro": "Este email já está cadastrado"}), 400
     finally:
         cursor.close()
         conexao.close()
@@ -55,6 +54,12 @@ def login_usuario():
     else:
         return jsonify({"erro": "Email ou senha incorretos"}), 401
 
+
+# ==========================================
+# ROTAS DO CRUD DE TAREFAS
+# ==========================================
+
+# 1. READ (Listar tarefas de um usuário específico)
 @app.route('/tarefas/<int:usuario_id>', methods=['GET'])
 def listar_tarefas(usuario_id):
     conexao = conectar_banco()
@@ -68,5 +73,67 @@ def listar_tarefas(usuario_id):
     
     return jsonify(tarefas), 200
 
+# 2. CREATE (Adicionar uma nova tarefa)
+@app.route('/tarefas', methods=['POST'])
+def adicionar_tarefa():
+    dados = request.get_json()
+    usuario_id = dados.get('usuario_id')
+    titulo = dados.get('titulo')
+    descricao = dados.get('descricao')
+
+    if not titulo or not usuario_id:
+        return jsonify({"erro": "Título e ID do usuário são obrigatórios"}), 400
+
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    
+    cursor.execute(
+        "INSERT INTO tarefas (usuario_id, titulo, descricao) VALUES (%s, %s, %s)",
+        (usuario_id, titulo, descricao)
+    )
+    conexao.commit()
+    
+    cursor.close()
+    conexao.close()
+    return jsonify({"mensagem": "Tarefa adicionada com sucesso!"}), 201
+
+# 3. UPDATE (Editar uma tarefa existente)
+@app.route('/tarefas/<int:tarefa_id>', methods=['PUT'])
+def editar_tarefa(tarefa_id):
+    dados = request.get_json()
+    titulo = dados.get('titulo')
+    descricao = dados.get('descricao')
+
+    if not titulo:
+        return jsonify({"erro": "O título não pode ser vazio"}), 400
+
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    
+    cursor.execute(
+        "UPDATE tarefas SET titulo = %s, descricao = %s WHERE id = %s",
+        (titulo, descricao, tarefa_id)
+    )
+    conexao.commit()
+    
+    cursor.close()
+    conexao.close()
+    return jsonify({"mensagem": "Tarefa atualizada com sucesso!"}), 200
+
+# DELETE (Excluir uma tarefa)
+@app.route('/tarefas/<int:tarefa_id>', methods=['DELETE'])
+def deletar_tarefa(tarefa_id):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    
+    cursor.execute("DELETE FROM tarefas WHERE id = %s", (tarefa_id,))
+    conexao.commit()
+    
+    cursor.close()
+    conexao.close()
+    return jsonify({"mensagem": "Tarefa deletada com sucesso!"}), 200
+
+
 if __name__ == '__main__':
+    # host="0.0.0.0" garante que o Flask responda ao IP 172.30.192.1 da sua rede externa
     app.run(host="0.0.0.0", port=5000, debug=True)
